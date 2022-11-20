@@ -43,7 +43,7 @@ def calc_block(block: np.ndarray) -> float:
     # must also be efficient
     return np.mean(block)
 
-ALPHABET = " .:-=+*#%@"
+ALPHABET = " .:-=+*#%@ "
 def block_to_string(block: Image) -> str:
     red, green, blue = [calc_block(np.array(block)[:, :, i]) for i in range(3)]
 
