@@ -1,6 +1,7 @@
 from PIL import Image, ImageChops
 import numpy as np
 import filetype
+from enum import Enum
 
 #####FOR WINDOWS#####
 import colorama
@@ -8,26 +9,41 @@ colorama.init()
 
 #####################
 
+class MediaTypes(Enum):
+    GIF = "gif"
+    VIDEO = "video"
+    IMAGE = "image"
+    UNKNOWN = "unknown"
+    ERROR = "error"
+
 def _identify_media_type(path: str) -> str:
     kind = filetype.guess(path)
     if kind is None:
-        return "error"
+        return MediaTypes.ERROR
     
     if 'gif' in kind.mime:
-        return "gif"
+        return MediaTypes.GIF
     elif 'video' in kind.mime:
-        return "video"
+        return MediaTypes.VIDEO
     elif 'image' in kind.mime:
-        return "image"
+        return MediaTypes.IMAGE
 
-    return "unknown"
+    return MediaTypes.UNKNOWN
 
 
 ALPHABET = " .:-=+*#%@ "
 
 class Converter:
-    def __init__(self, name: str, W: int = 180, H: int = 40):
+    def __init__(self, name: str, W: int = 180, H: int = 40) -> None:
         self.name = name
+
+        self.media_type = _identify_media_type(name)
+        if self.media_type == MediaTypes.ERROR or self.media_type == MediaTypes.UNKNOWN:
+            raise Exception("Invalid file or file not found")
+
+        if self.media_type == MediaTypes.GIF or self.media_type == MediaTypes.VIDEO:
+            raise NotImplementedError("GIF and video files are not supported yet")
+        
         self.image = Image.open(name)
         # Palette images need to be converted to RGB
         if self.image.mode == 'P':

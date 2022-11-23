@@ -1,4 +1,4 @@
-from convert import *
+from convert import Converter
 
 if __name__ == '__main__':
     import sys
