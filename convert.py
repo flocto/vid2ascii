@@ -1,76 +1,103 @@
 from PIL import Image, ImageChops
 import numpy as np
+import filetype
 
-#####FOR WINDOWS##### 
+#####FOR WINDOWS#####
 import colorama
 colorama.init()
 
 #####################
 
-class Converter:
-    def __init__(self, name: str):
-        self.name = name
-        self.image = Image.open(name)
+def _identify_media_type(path: str) -> str:
+    kind = filetype.guess(path)
+    if kind is None:
+        return "error"
     
-    # TODO: move functions to class methods
+    if 'gif' in kind.mime:
+        return "gif"
+    elif 'video' in kind.mime:
+        return "video"
+    elif 'image' in kind.mime:
+        return "image"
 
+    return "unknown"
 
-def get_blocks(image: Image) -> list:
-    # handle palette images
-    if image.mode == 'P':
-        image = image.convert('RGB')
-
-    width, height = image.size
-    # standard terminal size
-    W, H = 180, 40
-
-    w, h = int(np.ceil(width / W)), int(np.ceil(height / H))
-
-    blocks = []
-    for i in range(H):
-        row = []
-        for j in range(W):
-            if (j + 1) * w > width or (i + 1) * h > height: # if the block is out of bounds
-                break
-            block = image.crop((j * w, i * h, (j + 1) * w, (i + 1) * h))
-            row.append(block)
-        blocks.append(row)
-
-    return blocks
-
-def calc_block(block: np.ndarray) -> float:
-    # TODO: nearest neighbor or cubic (or something else) interpolation
-    # must also be efficient
-    return np.mean(block)
 
 ALPHABET = " .:-=+*#%@ "
-def block_to_string(block: Image) -> str:
-    red, green, blue = [calc_block(np.array(block)[:, :, i]) for i in range(3)]
 
-    lum = np.sqrt(0.299 * red ** 2 + 0.587 * green ** 2 + 0.114 * blue ** 2)
-    rep = ALPHABET[int(lum / 255 * (len(ALPHABET)))]
+class Converter:
+    def __init__(self, name: str, W: int = 180, H: int = 40):
+        self.name = name
+        self.image = Image.open(name)
+        # Palette images need to be converted to RGB
+        if self.image.mode == 'P':
+            self.image = self.image.convert('RGB')
 
-    if rep == ' ':
-        color = get_color(red, green, blue, bg=True)
-    else:
-        color = get_color(red, green, blue)
+        # Defined terminal size
+        self.W = W
+        self.H = H
 
+    def convert(self, save: bool = False) -> None:
+        blocks = self.get_blocks()
 
-    return color[0] + rep + color[1]
+        if save:
+            # Implement file saving feature
+            pass
 
-def get_color(red: float, green: float, blue: float, bg=False) -> tuple:
-    RESET = colorama.Fore.RESET 
-    if bg: # sometimes used for spaces, but then turns into redrawing via background then :/
-        color = '\033[48;2;{};{};{}m'.format(int(red), int(green), int(blue))
-        RESET = colorama.Back.RESET
-    else:
-        color = '\033[38;2;{};{};{}m'.format(int(red), int(green), int(blue))
-    return color, RESET
+        else:
+            for row in blocks:
+                for block in row:
+                    print(Converter.block_to_string(block), end='')
+                print()
 
-def print_image(image: Image) -> None:
-    blocks = get_blocks(image)
+    def get_blocks(self) -> list:
+        width, height = self.image.size
 
-    for row in blocks:
-        for block in row:
-            print(block_to_string(block), end='')
-        print()
+        w, h = int(np.ceil(width / self.W)), int(np.ceil(height / self.H))
+
+        blocks = []
+        for i in range(self.H):
+            row = []
+            for j in range(self.W):
+                if (j + 1) * w > width or (i + 1) * h > height:
+                    break
+                block = self.image.crop(
+                    (j * w, i * h, (j + 1) * w, (i + 1) * h))
+                row.append(block)
+            blocks.append(row)
+
+        return blocks
+
+    @staticmethod
+    def calc_block(block: np.ndarray) -> float:
+        # TODO: More contrast based sampling
+
+        return np.mean(block)
+
+    @staticmethod
+    def block_to_string(block: Image) -> str:
+        red, green, blue = [Converter.calc_block(
+            np.array(block)[:, :, i]) for i in range(3)]
+
+        lum = np.sqrt(0.299 * red ** 2 + 0.587 *
+                      green ** 2 + 0.114 * blue ** 2)
+        rep = ALPHABET[int(lum / 255 * (len(ALPHABET)))]
+
+        if rep == ' ':
+            color = Converter.get_color(red, green, blue, bg=True)
+        else:
+            color = Converter.get_color(red, green, blue)
+
+        return color[0] + rep + color[1]
+
+    @staticmethod
+    def get_color(red: float, green: float, blue: float, bg=False) -> tuple:
+        RESET = colorama.Fore.RESET
+        if bg:
+            color = '\033[48;2;{};{};{}m'.format(
+                int(red), int(green), int(blue))
+            RESET = colorama.Back.RESET
+        else:
+            color = '\033[38;2;{};{};{}m'.format(
+                int(red), int(green), int(blue))
+        return color, RESET
