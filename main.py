@@ -8,7 +8,7 @@ Commands:
     save: Saves the converted media to a file, instead of playing it in the terminal
 '''
 
-VERSION = '0.2.1'
+VERSION = '0.2.2'
 
 
 if __name__ == '__main__':

@@ -1,12 +1,13 @@
 import shutil
 from colorama import Fore, Back
 
+
 def get_bounds(width, height):
     aspect_ratio = width / height
     columns, rows = shutil.get_terminal_size()
     term_aspect_ratio = columns / rows
-    columns -= 1; rows -= 1 # for margin
-
+    columns -= 1
+    rows -= 1  # for margin
 
     if aspect_ratio < term_aspect_ratio:
         char_height = rows
@@ -14,8 +15,9 @@ def get_bounds(width, height):
     else:
         char_width = columns
         char_height = int(char_width / aspect_ratio)
-    
+
     return char_width * 2, char_height
+
 
 def get_color(red: float, green: float, blue: float, bg=False) -> tuple:
     if bg:
@@ -26,3 +28,8 @@ def get_color(red: float, green: float, blue: float, bg=False) -> tuple:
         reset = Fore.RESET
 
     return color, reset
+
+
+def calc_wait_time(size):
+    # random approximation from local samples, may not be accurate
+    return round(size / 85)

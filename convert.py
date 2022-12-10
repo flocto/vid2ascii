@@ -1,15 +1,13 @@
+import time
 import cv2
 import sys
 from math import sqrt
-from util import get_bounds, get_color
+from util import get_bounds, get_color, calc_wait_time
 import colorama
 colorama.init()
 
 ORIGIN = "\033[0;0H"
 ALPHABET = " .:-=+*#%@ "
-
-# DEBUG
-import time
 
 
 class Converter:
@@ -25,6 +23,7 @@ class Converter:
         width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.fps = int(video.get(cv2.CAP_PROP_FPS))
+        self.frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
         self.char_width, self.char_height = get_bounds(width, height)
 
@@ -32,7 +31,8 @@ class Converter:
         print("\033[2J", end="")  # clear screen preemtively
         video = self.video
         char_width, char_height = self.char_width, self.char_height
-        WAIT_FOR_FRAME = 1000/self.fps > 50 
+        WAIT_TIME = calc_wait_time(char_width * char_height)
+        WAIT_FOR_FRAME = 1000 / self.fps > WAIT_TIME
 
         while video.isOpened():
 
@@ -50,7 +50,7 @@ class Converter:
                     red, green, blue = pixel
 
                     lum = sqrt(0.299 * red ** 2 + 0.587 *
-                                  green ** 2 + 0.114 * blue ** 2)
+                               green ** 2 + 0.114 * blue ** 2)
                     ascii_char = ALPHABET[int(lum / 255 * (len(ALPHABET)))]
 
                     color, reset = get_color(
@@ -58,12 +58,11 @@ class Converter:
                     ascii_frame += color + ascii_char + reset
 
                 ascii_frame += "\n"
-            
+
             print(ORIGIN + ascii_frame, end="")
+
             if WAIT_FOR_FRAME:
-                cv2.waitKey(int(1000 / self.fps) - 50)
-
-
+                cv2.waitKey(int(1000 / self.fps) - WAIT_TIME)
 
         video.release()
         cv2.destroyAllWindows()

@@ -13,6 +13,7 @@ As of now they can still only be printed to the console, and cannot yet be saved
    2. ~~Possibly use pyte due to having to clear out the terminal every frame~~ (Ended up using ANSI and colorama)
    3. Printing takes time away from frame for bigger videos
       1. Still an issue, especially for larger and length videos.
+      2. Probably find a way to optimize colors, repeated sections don't have to be reset all the time.
 2. Store converted files 
    1. Storing as full text is way too long
    2. Design a way to "read" these converted files and play them back
