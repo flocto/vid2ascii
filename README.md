@@ -3,9 +3,9 @@ Basic command line program for converting videos, images, and gifs to ASCII art.
 As of now they can still only be printed to the console, and cannot yet be saved.
 
 ## Requirements
-- numpy
-- colorama
-- Pillow
+- colorama==0.4.6
+- numpy==1.23.4
+- opencv_python==4.6.0.66
 
 ## Checklist
 1. ~~Figuring out a way to print out the video at its original speed~~
