@@ -11,4 +11,13 @@ Ever wanted to play videos in your terminal, except you get none of the actual q
 pip install vid2ascii
 ```
 
+## Usage
+```python
+from vid2ascii import video
+import sys
+
+vid = video(sys.argv[1])
+vid.play()
+```
+
 3rd complete re-write since its inception, hopefully this final version sticks.
